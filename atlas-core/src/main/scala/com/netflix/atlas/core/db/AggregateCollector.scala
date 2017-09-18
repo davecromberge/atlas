@@ -154,6 +154,8 @@ class MaxAggregateCollector extends SimpleAggregateCollector {
   protected def aggregate(b1: TimeSeriesBuffer, b2: TimeSeriesBuffer) = b1.max(b2)
 }
 
+class InvariantFailedException(msg: String) extends RuntimeException(msg)
+
 abstract class LimitedAggregateCollector extends AggregateCollector {
   protected def checkLimits(numLines: Int, numDatapoints: Int): Unit = {
     check("lines", numLines, Limits.maxLines)
@@ -161,7 +163,10 @@ abstract class LimitedAggregateCollector extends AggregateCollector {
   }
 
   private def check(what: String, actual: Int, limit: Int): Unit = {
-    require(actual <= limit, s"too many $what: $actual > $limit")
+    if (actual <= limit)
+      throw new InvariantFailedException(s"too many $what: $actual > $limit")
+    else
+      Unit
   }
 }
 

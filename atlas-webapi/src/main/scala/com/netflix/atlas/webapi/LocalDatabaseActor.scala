@@ -15,6 +15,8 @@
  */
 package com.netflix.atlas.webapi
 
+import scala.util.control.NonFatal
+
 import akka.actor.Actor
 import akka.actor.ActorLogging
 import com.netflix.atlas.core.db.Database
@@ -30,6 +32,7 @@ class LocalDatabaseActor(db: Database) extends Actor with ActorLogging {
     case ListKeysRequest(tq)    => sender() ! KeyListResponse(db.index.findKeys(tq))
     case ListValuesRequest(tq)  => sender() ! ValueListResponse(db.index.findValues(tq))
     case req: DataRequest       => sender() ! executeDataRequest(req)
+    case ex: RuntimeException   => sender() ! ex
   }
 
   private def executeDataRequest(req: DataRequest): DataResponse = {
