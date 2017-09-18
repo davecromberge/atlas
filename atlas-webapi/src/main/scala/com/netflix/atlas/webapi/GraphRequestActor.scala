@@ -22,11 +22,11 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.MediaTypes
 import akka.http.scaladsl.model.StatusCodes
 import akka.util.ByteString
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.netflix.atlas.akka.ImperativeRequestContext
 import com.netflix.atlas.core.model._
 import com.netflix.atlas.core.util.PngImage
 import com.netflix.spectator.api.Registry
+
 
 class GraphRequestActor(registry: Registry) extends Actor with ActorLogging {
 
@@ -43,15 +43,20 @@ class GraphRequestActor(registry: Registry) extends Actor with ActorLogging {
     case v =>
       try innerReceive(v)
       catch {
-        case t: Exception if request != null && request.shouldOutputImage =>
-          // When viewing a page in a browser an error response is not rendered. To make it more
-          // clear to the user we return a 200 with the error information encoded into an image.
-          sendErrorImage(t, request.flags.width, request.flags.height)
-          context.stop(self)
-        case t: Throwable =>
-          graphCtx.fail(t)
-          context.stop(self)
+        case e: Throwable =>
+          handleError(e)
       }
+  }
+
+  def handleError(error: Throwable) = error match {
+    case t: Exception if request != null && request.shouldOutputImage =>
+      // When viewing a page in a browser an error response is not rendered. To make it more
+      // clear to the user we return a 200 with the error information encoded into an image.
+      sendErrorImage(t, request.flags.width, request.flags.height)
+      context.stop(self)
+    case t: Throwable =>
+      graphCtx.fail(t)
+      context.stop(self)
   }
 
   def innerReceive: Receive = {
@@ -61,20 +66,15 @@ class GraphRequestActor(registry: Registry) extends Actor with ActorLogging {
       dbRef.tell(request.toDbRequest, self)
     case DataResponse(data) =>
       sendImage(data)
+    case e: Throwable =>
+      handleError(e)
   }
 
   private def sendErrorImage(t: Throwable, w: Int, h: Int): Unit = {
     val simpleName = t.getClass.getSimpleName
     registry.counter(errorId.withTag("error", simpleName)).increment()
-
     val msg = s"$simpleName: ${t.getMessage}"
-    val errorImg = t match {
-      case _: IllegalArgumentException | _: IllegalStateException | _: JsonProcessingException =>
-        PngImage.userError(msg, w, h)
-      case _ =>
-        PngImage.systemError(msg, w, h)
-    }
-    val image = HttpEntity(MediaTypes.`image/png`, errorImg.toByteArray)
+    val image = HttpEntity(MediaTypes.`image/png`, PngImage.error(msg, w, h).toByteArray)
     graphCtx.complete(HttpResponse(status = StatusCodes.OK, entity = image))
   }
 
@@ -85,3 +85,4 @@ class GraphRequestActor(registry: Registry) extends Actor with ActorLogging {
     context.stop(self)
   }
 }
+
