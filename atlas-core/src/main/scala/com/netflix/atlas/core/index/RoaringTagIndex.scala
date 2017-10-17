@@ -18,6 +18,7 @@ package com.netflix.atlas.core.index
 import java.util
 import java.util.Comparator
 
+import com.netflix.atlas.core.DeepCalculator
 import com.netflix.atlas.core.model.ItemId
 import com.netflix.atlas.core.model.Query
 import com.netflix.atlas.core.model.Tag
@@ -51,6 +52,54 @@ class RoaringTagIndex[T <: TaggedItem](items: Array[T]) extends TagIndex[T] {
 
   type RoaringValueMap = IntRefHashMap[RoaringBitmap]
   type RoaringKeyMap = IntRefHashMap[RoaringValueMap]
+
+  def bytesSize() = {
+    val allSize = DeepCalculator.sizeOf(all)
+    println(s"All size: $allSize")
+
+    val keysSize = DeepCalculator.sizeOf(keys)
+    println(s"Keys size: $keysSize")
+
+    val valuesSize = DeepCalculator.sizeOf(values)
+    println(s"Values size: $valuesSize")
+
+    val keyMapSize = DeepCalculator.sizeOf(keyMap)
+    println(s"Key map size: $keyMapSize")
+
+    val valueMapSize = DeepCalculator.sizeOf(valueMap)
+    println(s"Value map size: $valueMapSize")
+
+    val itemIdsSize = DeepCalculator.sizeOf(itemIds)
+    println(s"Item ids size: $itemIdsSize")
+
+    val itemIndexSize = DeepCalculator.sizeOf(itemIndex)
+    println(s"Item index size: $itemIndexSize")
+
+    val keyIndexSize = DeepCalculator.sizeOf(keyIndex)
+    println(s"Key index size: $keyIndexSize")
+
+    val tagIndexSize = DeepCalculator.sizeOf(tagIndex)
+    println(s"Tag index size: $tagIndexSize")
+
+    val itemTagsSize = DeepCalculator.sizeOf(itemTags)
+    println(s"Item tags size: $itemTagsSize")
+
+    val totalSize =
+        allSize +
+        keysSize +
+        valuesSize +
+        keyMapSize +
+        valueMapSize +
+        itemIdsSize +
+        itemIndexSize +
+        keyIndexSize +
+        tagIndexSize +
+        itemTagsSize
+
+    println(s"Total size: $totalSize")
+
+    totalSize
+  }
 
   // Comparator for ordering tagged items using the id
   private val idComparator = new Comparator[T] {

@@ -1,6 +1,8 @@
 
 scalafmtVersion in ThisBuild := "1.2.0"
 
+fork := true
+
 lazy val root = project.in(file("."))
   .configure(BuildSettings.profile)
   .aggregate(
@@ -54,6 +56,7 @@ lazy val `atlas-core` = project
   .settings(libraryDependencies ++= Seq(
     Dependencies.caffeine,
     Dependencies.roaringBitmap,
+    Dependencies.objectSize,
     Dependencies.equalsVerifier % "test",
     Dependencies.jol % "test"
   ))

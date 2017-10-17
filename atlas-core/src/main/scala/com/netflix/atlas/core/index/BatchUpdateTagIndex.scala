@@ -47,7 +47,7 @@ class BatchUpdateTagIndex[T <: TaggedItem: ClassTag](newIndex: (Array[T]) => Tag
   private def registry = Spectator.globalRegistry()
 
   // Current index used for all query operations
-  private val currentIndex = new AtomicReference[TagIndex[T]](newIndex(Array.empty[T]))
+  val currentIndex = new AtomicReference[TagIndex[T]](newIndex(Array.empty[T]))
 
   // Last time the index was rebuilt
   private val lastRebuildTime = new AtomicLong(0L)

@@ -61,14 +61,17 @@ class MemoryDatabase(registry: Registry, config: Config) extends Database {
   private val logger = LoggerFactory.getLogger(getClass)
 
   val index = new BatchUpdateTagIndex[BlockStoreItem]({ items =>
-    new CachingTagIndex(new RoaringTagIndex(items))
+    new RoaringTagIndex(items)
   })
+
+  def roaringTagIndex: RoaringTagIndex[BlockStoreItem] =
+    index.currentIndex.get().asInstanceOf[RoaringTagIndex[BlockStoreItem]]
 
   // If the last update time for the index is older than the rebuild age force an update
   private val rebuildAge = config.getDuration("rebuild-frequency", TimeUnit.MILLISECONDS)
 
   type ItemId = Map[String, String]
-  private val data = new ConcurrentHashMap[ItemId, BlockStore]
+  val data = new ConcurrentHashMap[ItemId, BlockStore]
 
   private val rebuildThread = new Thread(new RebuildTask, "MemoryDatabaseRebuildIndex")
   if (!testMode) rebuildThread.start()
@@ -105,7 +108,7 @@ class MemoryDatabase(registry: Registry, config: Config) extends Database {
           iter.remove()
         }
       }
-      logger.info("done rebuilding metadata index, " + index.size + " metrics")
+      println("done rebuilding metadata index, " + index.size + " metrics")
 
       BlockStoreItem.retain(_ > cutoff)
     }

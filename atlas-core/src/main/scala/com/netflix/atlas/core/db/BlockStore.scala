@@ -163,7 +163,7 @@ class MemoryBlockStore(step: Long, blockSize: Int, numBlocks: Int) extends Block
 
   private val blockStep = step * blockSize
 
-  private[db] val blocks: Array[Block] = new Array[Block](numBlocks)
+  val blocks: Array[Block] = new Array[Block](numBlocks)
 
   private[db] var currentPos: Int = 0
 

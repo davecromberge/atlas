@@ -41,6 +41,7 @@ object Dependencies {
   val iepModuleAws    = "com.netflix.iep" % "iep-module-aws" % iep
   val iepNflxEnv      = "com.netflix.iep" % "iep-nflxenv" % iep
   val iepService      = "com.netflix.iep" % "iep-service" % iep
+  val objectSize      = "com.twitter.common" % "objectsize" % "0.0.12"
   val jacksonAnno2    = "com.fasterxml.jackson.core" % "jackson-annotations" % jackson
   val jacksonCore2    = "com.fasterxml.jackson.core" % "jackson-core" % jackson
   val jacksonJoda2    = "com.fasterxml.jackson.datatype" % "jackson-datatype-joda" % jackson
